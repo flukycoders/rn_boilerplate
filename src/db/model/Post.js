@@ -1,6 +1,6 @@
 // model/Post.js
 import {Model} from '@nozbe/watermelondb';
-import {field, text, date} from '@nozbe/watermelondb/decorators';
+import {field, text, date, writer} from '@nozbe/watermelondb/decorators';
 
 export default class Post extends Model {
   static table = 'posts';
@@ -13,11 +13,15 @@ export default class Post extends Model {
   @date('subtitle') subtitle;
   // @date('archived_at') archivedAt;
 
-  // get isRecentlyArchived() {
-  //   // in the last 7 days
-  //   return (
-  //     this.archivedAt &&
-  //     this.archivedAt.getTime() > Date.now() - 7 * 24 * 3600 * 1000
-  //   );
-  // }
+  @writer async addComment(data) {
+    console.log(data);
+    // const newComment = await this.collections
+    //   .get('comments')
+    //   .create(comment => {
+    //     comment.post.set(this);
+    //     comment.author.set(author);
+    //     comment.body = body;
+    //   });
+    return data;
+  }
 }

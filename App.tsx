@@ -10,6 +10,7 @@
 
 import React from 'react';
 import {
+  Button,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -26,37 +27,14 @@ import {
   LearnMoreLinks,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+import withObservables from '@nozbe/with-observables';
+import {withDatabase} from '@nozbe/watermelondb/DatabaseProvider';
+import {compose} from 'recompose';
+import {useDatabase} from '@nozbe/watermelondb/hooks';
 
-import database from './src/db';
-const Section: React.FC<{
-  title: string;
-}> = ({children, title}) => {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-};
+const App = ({postsObserved}) => {
+  const database = useDatabase();
 
-const App = () => {
   const isDarkMode = useColorScheme() === 'dark';
 
   const backgroundStyle = {
@@ -69,45 +47,37 @@ const App = () => {
 
   const _didMount = async () => {
     try {
-      const newPost = await database.get('posts').create((post: any) => {
-        post.title = 'New post';
-        post.body = 'Lorem ipsum...';
+      await database.write(async () => {
+        let data = await database.get('posts').create((ticket: any) => {
+          ticket.title = `New Ticket ${Math.random()}`;
+          ticket.body = `${Math.random()}`;
+        });
+        console.log('data: ', data);
       });
-      console.log('newPost: ', newPost);
-    } catch (error) {
-      console.log('error: ', error);
-    }
+    } catch (error) {}
   };
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+      <Button title="hello" onPress={() => _didMount()}></Button>
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
         <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
+        {postsObserved?.map((item: any) => (
+          <Text key={item?.title}>{item?.title}</Text>
+        ))}
       </ScrollView>
     </SafeAreaView>
   );
 };
+
+export default compose(
+  withDatabase,
+  withObservables([], ({database}: {database: any}) => ({
+    postsObserved: database.get('posts').query().observe(),
+  })),
+)(App);
 
 const styles = StyleSheet.create({
   sectionContainer: {
@@ -127,5 +97,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-
-export default App;
