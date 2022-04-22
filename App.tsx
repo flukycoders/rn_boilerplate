@@ -30,10 +30,10 @@ import {
 import withObservables from '@nozbe/with-observables';
 import {withDatabase} from '@nozbe/watermelondb/DatabaseProvider';
 import {compose} from 'recompose';
-import {useDatabase} from '@nozbe/watermelondb/hooks';
+import useCustomDatabase from './src/hooks/useCustomDatabase';
 
 const App = ({postsObserved}) => {
-  const database = useDatabase();
+  const database = useCustomDatabase();
 
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -47,14 +47,13 @@ const App = ({postsObserved}) => {
 
   const _didMount = async () => {
     try {
-      await database.write(async () => {
-        let data = await database.get('posts').create((ticket: any) => {
-          ticket.title = `New Ticket ${Math.random()}`;
-          ticket.body = `${Math.random()}`;
-        });
-        console.log('data: ', data);
+      await database?.write('posts', {
+        title: 'test' + Math.random(),
+        body: 'MAAAN',
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log('error: ', error);
+    }
   };
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -64,8 +63,8 @@ const App = ({postsObserved}) => {
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
         <Header />
-        {postsObserved?.map((item: any) => (
-          <Text key={item?.title}>{item?.title}</Text>
+        {postsObserved?.map((item: any, index: number) => (
+          <Text key={index}>{item?.title}</Text>
         ))}
       </ScrollView>
     </SafeAreaView>
