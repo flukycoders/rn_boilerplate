@@ -27,6 +27,7 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+import database from './src/db';
 const Section: React.FC<{
   title: string;
 }> = ({children, title}) => {
@@ -62,6 +63,21 @@ const App = () => {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  React.useEffect(() => {
+    _didMount();
+  }, []);
+
+  const _didMount = async () => {
+    try {
+      const newPost = await database.get('posts').create((post: any) => {
+        post.title = 'New post';
+        post.body = 'Lorem ipsum...';
+      });
+      console.log('newPost: ', newPost);
+    } catch (error) {
+      console.log('error: ', error);
+    }
+  };
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
